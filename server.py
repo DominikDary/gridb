@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from bottle import redirect, request, response, route, run, template
-import ADB, JARSIGN, json, os, requests, time
+import ADB, JARSIGN, json, os, requests, sys, time
 
 selendroid_path = JARSIGN.resign(os.path.abspath("selendroid-server.apk"))
 
@@ -78,7 +78,21 @@ def forward(path):
         return json.loads(r.text)
     return r.text
 
-print "Expecting capabilites in the form of:\n{ 'app.package': 'com.salesforce.chatter', 'app.apk': '/full/path/to/apk', 'app.activity': 'com.salesforce.chatter.Chatter', 'api': 15 }"
+print """
+
+**************************************
+Expecting capabilites in the form of:
+{ 
+  'app.package': 'com.company.product', 
+  'app.apk': '/full/path/to/apk', 
+  'app.activity': 'com.company.product.MainActivityClass', 
+  'api': 15,
+  # optional # 'app.install': False  # defaults to True
+}
+**************************************
+
+
+"""
 
 port = 8080
 
@@ -88,4 +102,4 @@ if len(sys.argv) > 1:
     except:
         pass
 
-run(server='paste', host='0.0.0.0', port=port)
+run(server='paste', port=port)
