@@ -38,17 +38,21 @@ def startSession():
     data = request.body.read()
     caps = json.loads(data)['desiredCapabilities']
     adb = ADB.adb(caps)
-    adb.uninstall(caps['app.package'])
-    adb.uninstall("org.openqa.selendroid")
-    if os.path.exists(caps['app.apk']):
-        apk_path = caps['app.apk']
-    else:
-        # todo create apk file from compressed data
+    if caps.has_key('app.install') and not caps['app.install']:
         pass
+    else:
+        adb.uninstall(caps['app.package'])
+        adb.uninstall("org.openqa.selendroid")
+        if os.path.exists(caps['app.apk']):
+            apk_path = caps['app.apk']
+        else:
+            # todo create apk file from compressed data
+            pass
 
-    resigned = JARSIGN.resign(apk_path)
-    adb.install(resigned)
-    adb.install(selendroid_path)
+        resigned = JARSIGN.resign(apk_path)
+        adb.install(resigned)
+        adb.install(selendroid_path)
+    
     adb.instrumentation(caps['app.activity'])
     adb.forward()
     time.sleep(1) # need to give the activity a moment to start up
@@ -76,4 +80,12 @@ def forward(path):
 
 print "Expecting capabilites in the form of:\n{ 'app.package': 'com.salesforce.chatter', 'app.apk': '/full/path/to/apk', 'app.activity': 'com.salesforce.chatter.Chatter', 'api': 15 }"
 
-run(server='paste', host='0.0.0.0', port=8080)
+port = 8080
+
+if len(sys.argv) > 1:
+    try:
+        port = int(sys.argv[1])
+    except:
+        pass
+
+run(server='paste', host='0.0.0.0', port=port)

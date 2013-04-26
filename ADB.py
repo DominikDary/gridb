@@ -24,25 +24,33 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import commands, sys
+import commands, sys, time
 
 
 sessions = {}
+last_access = {}
 devices = set()
 
 def host(sessionId):
+    last_access[sessionId] = time.time()
     return sessions[sessionId].host
 
-def quit(sessiondId):
-    sessions[sessiondId].quit()
+def quit(sessionId):
+    sessions[sessionId].quit()
 
 class adb:
     def __init__(self, caps):
         global devices
+        global last_access
         if len(devices) > 0:
             # todo, get the api level and compare
             self.device = devices.pop()
         else:
+            for device in devices:
+                if time.time() - last_access[device._sessionId] >= 300:
+                    device.quit()
+                    self.device = devices.pop()
+                    return
             raise Exception("no devices available")
     def install(self, path):
         cmd("-s %s install \"%s\"" % (self.device[0], path))
@@ -67,9 +75,11 @@ class adb:
 
     def setSessionId(self, id):
         global sessions
+        global last_access
         print "setting session id with: " + id
         self._sessionId = id
         sessions[id] = self
+        last_access[id] = time.time()
 
     def quit(self):
         global sessions
@@ -95,7 +105,7 @@ def find_devices(port=8090):
 
 if len(sys.argv) > 1:
     try:
-        find_devices(int(sys.argv[1]))
+        find_devices(int(sys.argv[1]) + 1)
     except:
         find_devices()
 else:
