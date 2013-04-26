@@ -23,9 +23,12 @@ Prerequisites
 Running it
 ----------
 
+Make sure you have all the devices connected and emulators started and shown in `adb devices` that you want this node to control before starting it.
+
     python server.py [port]
 
 port is optional, starts the server on this port, increments number to port forward the adb devices to. Default is 8080 (thus the first device will be on 8081)
+
 
 Connecting to it
 ----------------
